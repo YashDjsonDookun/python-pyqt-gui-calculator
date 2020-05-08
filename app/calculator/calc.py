@@ -117,6 +117,7 @@ class CalcCtrl:
                 btn.clicked.connect(partial(self._buildExpression, btnText))
 
        self._view.buttons['C'].clicked.connect(self._view.clearDisplay)
+
 # Client Code
 def main():
     """Main Function"""
