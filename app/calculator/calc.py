@@ -18,6 +18,8 @@ from PyQt5.QtWidgets import QVBoxLayout
 
 from functools import partial
 
+ERROR_MSG = "ERROR"
+
 
 # create a subclass of QMainWindow to setup the calculator's GUI
 class CalcUI(QMainWindow):
@@ -78,7 +80,7 @@ class CalcUI(QMainWindow):
         # Create the buttons and add them to the grid layout
         for btnText, pos in buttons.items():
             self.buttons[btnText] = QPushButton(btnText)
-            self.buttons[btnText].setFixedSize(40,40)
+            self.buttons[btnText].setFixedSize(40, 40)
             buttonsLayout.addWidget(self.buttons[btnText], pos[0], pos[1])
         # Add buttonsLayout to the general layout
         self.generalLayout.addLayout(buttonsLayout)
@@ -96,27 +98,41 @@ class CalcUI(QMainWindow):
         """Clear the display."""
         self.setDisplayText('')
 
+
 # Create a Controller class to connect to the GUI and the Model
 class CalcCtrl:
     """Calc controller class"""
-    def __int__(self, view):
-        """Controller Initializer"""
+
+    def __init__(self, model, view):
+        """Controller initializer."""
+        self._evaluate = model
         self._view = view
         # Connect signals and slots
         self._connectSignals()
 
+    def _calculateResult(self):
+        """Evaluate expressions."""
+        result = self._evaluate(expression=self._view.displayText())
+        self._view.setDisplayText(result)
+
     def _buildExpression(self, sub_exp):
-        """Build expression"""
+        """Build expression."""
+        if self._view.displayText() == ERROR_MSG:
+            self._view.clearDisplay()
+
         expression = self._view.displayText() + sub_exp
         self._view.setDisplayText(expression)
 
     def _connectSignals(self):
-       """Connect signals and slots"""
-       for btnText, btn in self._view.buttons.items():
+        """Connect signals and slots."""
+        for btnText, btn in self._view.buttons.items():
             if btnText not in {'=', 'C'}:
                 btn.clicked.connect(partial(self._buildExpression, btnText))
 
-       self._view.buttons['C'].clicked.connect(self._view.clearDisplay)
+        self._view.buttons['='].clicked.connect(self._calculateResult)
+        self._view.display.returnPressed.connect(self._calculateResult)
+        self._view.buttons['C'].clicked.connect(self._view.clearDisplay)
+
 
 # Client Code
 def main():
@@ -127,9 +143,21 @@ def main():
     view = CalcUI()
     view.show()
     # Create instances of the model and the controller
-    CalcCtrl(view=view)
+    model = evaluateExpression
+    CalcCtrl(model=model, view=view)
     # Execute the calculator's main loop
     sys.exit(calc.exec())
+
+
+# Create a Model to handle the calculator's operation
+def evaluateExpression(expression):
+    """Evaluate an expression."""
+    try:
+        result = str(eval(expression, {}, {}))
+    except Exception:
+        result = ERROR_MSG
+
+    return result
 
 
 if __name__ == "__main__":
