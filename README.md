@@ -1,6 +1,6 @@
 # python-pyqt-gui-calculator 
 
-### Using Python and PyQt5 to create a GUI for a calculator
+### Using Python and PyQt5 to create a calculator with a GUI
 
 > calc.exe (Already compiled for Windows using PyInstaller)
 
